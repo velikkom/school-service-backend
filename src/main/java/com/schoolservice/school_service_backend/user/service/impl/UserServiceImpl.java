@@ -1,10 +1,13 @@
 package com.schoolservice.school_service_backend.user.service.impl;
 
+import com.schoolservice.school_service_backend.user.dto.AdminUserResponse;
 import com.schoolservice.school_service_backend.user.dto.PendingUserResponse;
 import com.schoolservice.school_service_backend.user.entity.User;
 import com.schoolservice.school_service_backend.user.enums.ApprovalStatus;
+import com.schoolservice.school_service_backend.user.mapper.UserMapper;
 import com.schoolservice.school_service_backend.user.repository.UserRepository;
 import com.schoolservice.school_service_backend.user.service.UserService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -13,9 +16,11 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
     @Override
     public List<PendingUserResponse> getPendingUsers() {
@@ -62,5 +67,14 @@ public class UserServiceImpl implements UserService {
         user.setApprovalStatus(ApprovalStatus.REJECTED);
         userRepository.save(user);
     }
+
+    @Override
+    public List<AdminUserResponse> getApprovedUsers() {
+        return userRepository.findByApprovalStatus(ApprovalStatus.APPROVED)
+                .stream()
+                .map(userMapper::toAdminUserResponse)
+                .toList();
+    }
+
 
 }

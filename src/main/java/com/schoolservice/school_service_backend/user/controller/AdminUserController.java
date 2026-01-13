@@ -1,6 +1,7 @@
 package com.schoolservice.school_service_backend.user.controller;
 
 import com.schoolservice.school_service_backend.common.response.ResponseWrapper;
+import com.schoolservice.school_service_backend.user.dto.AdminUserResponse;
 import com.schoolservice.school_service_backend.user.dto.PendingUserResponse;
 import com.schoolservice.school_service_backend.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -86,4 +87,24 @@ public class AdminUserController {
                 )
         );
     }
+
+    /**
+     * List approved users
+     */
+    @GetMapping("/approved")
+    @Operation(
+            summary = "Get approved users",
+            description = "Lists all approved users (ADMIN only)"
+    )
+    public ResponseEntity<ResponseWrapper<List<AdminUserResponse>>> getApprovedUsers(){
+
+        return ResponseEntity.ok(
+                ResponseWrapper.success(
+                        userService.getApprovedUsers(),
+                        "Approved users retrieved successfully"
+                )
+        );
+    }
+
+
 }

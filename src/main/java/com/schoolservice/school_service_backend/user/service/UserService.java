@@ -1,5 +1,6 @@
 package com.schoolservice.school_service_backend.user.service;
 
+import com.schoolservice.school_service_backend.user.dto.AdminUserResponse;
 import com.schoolservice.school_service_backend.user.dto.PendingUserResponse;
 import org.springframework.stereotype.Service;
 
@@ -14,4 +15,6 @@ public interface UserService {
     void approveUser(UUID userId);
 
     void rejectUser(UUID userId);
+
+    List<AdminUserResponse>getApprovedUsers();
 }
