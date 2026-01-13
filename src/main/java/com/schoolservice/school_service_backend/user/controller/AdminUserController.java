@@ -5,6 +5,7 @@ import com.schoolservice.school_service_backend.user.dto.PendingUserResponse;
 import com.schoolservice.school_service_backend.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -17,6 +18,7 @@ import java.util.UUID;
 @RequestMapping("/api/admin/users")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('ADMIN')")
+@SecurityRequirement(name = "bearerAuth")
 @Tag(
         name = "Admin - User Management",
         description = "Admin operations for approving, rejecting and managing users"
@@ -25,48 +27,63 @@ public class AdminUserController {
 
     private final UserService userService;
 
-
     /**
-     * Get all pending users
-     * @return List of pending users
+     * Get all users with PENDING approval status
      */
     @GetMapping("/pending")
-    @Operation(summary = "Get pending users")
-    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(
+            summary = "Get pending users",
+            description = "Returns all users waiting for admin approval"
+    )
     public ResponseEntity<ResponseWrapper<List<PendingUserResponse>>> getPendingUsers() {
-        return ResponseEntity.ok(ResponseWrapper.success(
-                userService.getPendingUsers(),
-                "Pending users retrieved successfully"));
+
+        return ResponseEntity.ok(
+                ResponseWrapper.success(
+                        userService.getPendingUsers(),
+                        "Pending users retrieved successfully"
+                )
+        );
     }
 
     /**
-     * Approve a user
-     * @param userId The ID of the user to approve
-     * @return Success message
+     * Approve a pending user
      */
     @PutMapping("/{userId}/approve")
     @Operation(
-            summary = "Approve user (ADMIN only)",
-            description = "Approves a pending user. Only ADMIN role is allowed."
+            summary = "Approve user",
+            description = "Approves a pending user. Only ADMIN can perform this operation."
     )
-    @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "bearerAuth")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ResponseWrapper<Void>> approveUser(@PathVariable UUID id) {
-        userService.approveUser(id);
-        return ResponseEntity.ok(ResponseWrapper.success(null, "User approved successfully"));
+    public ResponseEntity<ResponseWrapper<Void>> approveUser(
+            @PathVariable UUID userId
+    ) {
+        userService.approveUser(userId);
+
+        return ResponseEntity.ok(
+                ResponseWrapper.success(
+                        null,
+                        "User approved successfully"
+                )
+        );
     }
 
     /**
-     * Reject a user
-     * @param userId The ID of the user to reject
-     * @return Success message
+     * Reject a pending user
      */
     @PutMapping("/{userId}/reject")
-    @Operation(summary = "Reject user")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ResponseWrapper<Void>> rejectUser(UUID userId) {
+    @Operation(
+            summary = "Reject user",
+            description = "Rejects a pending user. Only ADMIN can perform this operation."
+    )
+    public ResponseEntity<ResponseWrapper<Void>> rejectUser(
+            @PathVariable UUID userId
+    ) {
         userService.rejectUser(userId);
-        return ResponseEntity.ok(ResponseWrapper.success(null, "User rejected successfully"));
-    }
 
+        return ResponseEntity.ok(
+                ResponseWrapper.success(
+                        null,
+                        "User rejected successfully"
+                )
+        );
+    }
 }

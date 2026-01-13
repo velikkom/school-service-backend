@@ -52,6 +52,26 @@ public class GlobalExceptionHandler {
     }
 
     /* =============================
+   AUTHENTICATION ERRORS (401)
+============================== */
+    @ExceptionHandler({
+            org.springframework.security.core.userdetails.UsernameNotFoundException.class,
+            org.springframework.security.authentication.BadCredentialsException.class
+    })
+    public ResponseEntity<ErrorResponse> handleAuthenticationException(
+            RuntimeException ex
+    ) {
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(new ErrorResponse(
+                        HttpStatus.UNAUTHORIZED.value(),
+                        ex.getMessage(),
+                        LocalDateTime.now()
+                ));
+    }
+
+
+    /* =============================
        ACCESS DENIED (403)
     ============================== */
     @ExceptionHandler(AccessDeniedException.class)
@@ -82,4 +102,5 @@ public class GlobalExceptionHandler {
                         LocalDateTime.now()
                 ));
     }
+
 }

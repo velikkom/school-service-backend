@@ -1,6 +1,7 @@
 package com.schoolservice.school_service_backend.config;
 
 import com.schoolservice.school_service_backend.user.entity.User;
+import com.schoolservice.school_service_backend.user.enums.ApprovalStatus;
 import com.schoolservice.school_service_backend.user.enums.RoleType;
 import com.schoolservice.school_service_backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +21,7 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) {
 
-        String adminEmail = "admin@school.com";
+        String adminEmail = "velikkom@gmail.com";
 
         if (userRepository.existsByEmail(adminEmail)) {
             return; // ✅ Zaten varsa dokunma
@@ -30,9 +31,10 @@ public class DataInitializer implements CommandLineRunner {
                 .firstName("System")
                 .lastName("Admin")
                 .email(adminEmail)
-                .password(passwordEncoder.encode("Admin123!"))
+                .password(passwordEncoder.encode("123456"))
                 .roles(Set.of(RoleType.ROLE_ADMIN))
                 .active(true)
+                .approvalStatus(ApprovalStatus.APPROVED)
                 .build();
 
         userRepository.save(admin);
