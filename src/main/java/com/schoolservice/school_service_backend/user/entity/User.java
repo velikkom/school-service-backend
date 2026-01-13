@@ -1,5 +1,6 @@
 package com.schoolservice.school_service_backend.user.entity;
 
+import com.schoolservice.school_service_backend.user.enums.ApprovalStatus;
 import com.schoolservice.school_service_backend.user.enums.RoleType;
 import jakarta.persistence.*;
 import jakarta.persistence.Id;
@@ -42,4 +43,10 @@ public class User {
 
     @Column(nullable = false)
     private boolean active = true;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private ApprovalStatus approvalStatus = ApprovalStatus.PENDING;
+
 }

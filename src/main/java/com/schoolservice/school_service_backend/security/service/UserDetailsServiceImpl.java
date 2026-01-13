@@ -1,6 +1,7 @@
 package com.schoolservice.school_service_backend.security.service;
 
 import com.schoolservice.school_service_backend.user.entity.User;
+import com.schoolservice.school_service_backend.user.enums.ApprovalStatus;
 import com.schoolservice.school_service_backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
@@ -29,16 +30,19 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                                 "User not found with email: " + email
                         )
                 );
-
+        //is user active or not ?
         if (!user.isActive()) {
             throw new UsernameNotFoundException(
                     "User is inactive: " + email
             );
         }
-
+        // is there any admin approval
+        if(user.getApprovalStatus() != ApprovalStatus.APPROVED){
+            throw new UsernameNotFoundException("User is not approved yet: " + email);
+        }
         Set<GrantedAuthority> authorities = user.getRoles()
                 .stream()
-                .map(role -> new SimpleGrantedAuthority(role.name()))
+                .map(role -> new SimpleGrantedAuthority("ROLE_" + role.name()))
                 .collect(Collectors.toSet());
 
         return new org.springframework.security.core.userdetails.User(
