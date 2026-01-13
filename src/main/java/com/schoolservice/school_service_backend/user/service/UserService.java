@@ -17,4 +17,8 @@ public interface UserService {
     void rejectUser(UUID userId);
 
     List<AdminUserResponse>getApprovedUsers();
+
+    void activateUser(UUID userId);
+
+    void deactivateUser(UUID userId);
 }

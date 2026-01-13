@@ -1,5 +1,7 @@
 package com.schoolservice.school_service_backend.user.service.impl;
 
+import com.schoolservice.school_service_backend.common.exception.BusinessException;
+import com.schoolservice.school_service_backend.common.exception.ResourceNotFoundException;
 import com.schoolservice.school_service_backend.user.dto.AdminUserResponse;
 import com.schoolservice.school_service_backend.user.dto.PendingUserResponse;
 import com.schoolservice.school_service_backend.user.entity.User;
@@ -9,6 +11,7 @@ import com.schoolservice.school_service_backend.user.repository.UserRepository;
 import com.schoolservice.school_service_backend.user.service.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,6 +24,14 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+
+    private boolean isCurrentAdmin(User targetUser) {
+        String currentEmail = SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getName();
+
+        return targetUser.getEmail().equals(currentEmail);
+    }
 
     @Override
     public List<PendingUserResponse> getPendingUsers() {
@@ -75,6 +86,51 @@ public class UserServiceImpl implements UserService {
                 .map(userMapper::toAdminUserResponse)
                 .toList();
     }
+
+    @Override
+    public void activateUser(UUID userId) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("User not found")
+                );
+
+        if (user.isActive()) {
+            throw new BusinessException("User is already active");
+        }
+
+        if (user.getApprovalStatus() != ApprovalStatus.APPROVED) {
+            throw new BusinessException("Only approved users can be activated");
+        }
+
+        if (isCurrentAdmin(user)) {
+            throw new BusinessException("Admin cannot activate own account");
+        }
+
+        user.setActive(true);
+        userRepository.save(user);
+    }
+
+    @Override
+    public void deactivateUser(UUID userId) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("User not found")
+                );
+
+        if (!user.isActive()) {
+            throw new BusinessException("User is already inactive");
+        }
+
+        if (isCurrentAdmin(user)) {
+            throw new BusinessException("Admin cannot deactivate own account");
+        }
+
+        user.setActive(false);
+        userRepository.save(user);
+    }
+
 
 
 }

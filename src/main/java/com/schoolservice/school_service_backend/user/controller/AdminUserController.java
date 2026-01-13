@@ -106,5 +106,46 @@ public class AdminUserController {
         );
     }
 
+    /**
+     * Activate user
+     */
+    @PutMapping("/{userId}/activate")
+    @Operation(
+            summary = "Activate user",
+            description = "Activates an approved but inactive user"
+    )
+    public ResponseEntity<ResponseWrapper<Void>> activateUser(
+            @PathVariable UUID userId
+    ) {
+        userService.activateUser(userId);
+
+        return ResponseEntity.ok(
+                ResponseWrapper.success(
+                        null,
+                        "User activated successfully"
+                )
+        );
+    }
+
+    /**
+     * Deactivate user
+     */
+    @PutMapping("/{userId}/deactivate")
+    @Operation(
+            summary = "Deactivate user",
+            description = "Deactivates an active user"
+    )
+    public ResponseEntity<ResponseWrapper<Void>> deactivateUser(
+            @PathVariable UUID userId
+    ) {
+        userService.deactivateUser(userId);
+
+        return ResponseEntity.ok(
+                ResponseWrapper.success(
+                        null,
+                        "User deactivated successfully"
+                )
+        );
+    }
 
 }

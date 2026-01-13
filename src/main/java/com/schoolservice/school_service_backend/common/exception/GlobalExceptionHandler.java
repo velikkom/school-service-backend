@@ -1,5 +1,6 @@
 package com.schoolservice.school_service_backend.common.exception;
 
+import com.schoolservice.school_service_backend.common.response.ResponseWrapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -7,32 +8,38 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.time.LocalDateTime;
-
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     /* =============================
-       BUSINESS EXCEPTION
+       RESOURCE NOT FOUND (404)
     ============================== */
-    @ExceptionHandler(BusinessException.class)
-    public ResponseEntity<ErrorResponse> handleBusinessException(
-            BusinessException ex
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ResponseWrapper<Void>> handleNotFound(
+            ResourceNotFoundException ex
     ) {
         return ResponseEntity
-                .badRequest()
-                .body(new ErrorResponse(
-                        HttpStatus.BAD_REQUEST.value(),
-                        ex.getMessage(),
-                        LocalDateTime.now()
-                ));
+                .status(HttpStatus.NOT_FOUND)
+                .body(ResponseWrapper.fail(ex.getMessage()));
     }
 
     /* =============================
-       VALIDATION ERROR
+       BUSINESS EXCEPTION (400)
+    ============================== */
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<ResponseWrapper<Void>> handleBusiness(
+            BusinessException ex
+    ) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ResponseWrapper.fail(ex.getMessage()));
+    }
+
+    /* =============================
+       VALIDATION ERROR (400)
     ============================== */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidationException(
+    public ResponseEntity<ResponseWrapper<Void>> handleValidation(
             MethodArgumentNotValidException ex
     ) {
         String message = ex.getBindingResult()
@@ -43,64 +50,46 @@ public class GlobalExceptionHandler {
                 .orElse("Validation error");
 
         return ResponseEntity
-                .badRequest()
-                .body(new ErrorResponse(
-                        HttpStatus.BAD_REQUEST.value(),
-                        message,
-                        LocalDateTime.now()
-                ));
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ResponseWrapper.fail(message));
     }
 
     /* =============================
-   AUTHENTICATION ERRORS (401)
-============================== */
+       UNAUTHORIZED (401)
+    ============================== */
     @ExceptionHandler({
             org.springframework.security.core.userdetails.UsernameNotFoundException.class,
             org.springframework.security.authentication.BadCredentialsException.class
     })
-    public ResponseEntity<ErrorResponse> handleAuthenticationException(
+    public ResponseEntity<ResponseWrapper<Void>> handleUnauthorized(
             RuntimeException ex
     ) {
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
-                .body(new ErrorResponse(
-                        HttpStatus.UNAUTHORIZED.value(),
-                        ex.getMessage(),
-                        LocalDateTime.now()
-                ));
+                .body(ResponseWrapper.fail(ex.getMessage()));
     }
 
-
     /* =============================
-       ACCESS DENIED (403)
+       FORBIDDEN (403)
     ============================== */
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ErrorResponse> handleAccessDenied(
+    public ResponseEntity<ResponseWrapper<Void>> handleAccessDenied(
             AccessDeniedException ex
     ) {
         return ResponseEntity
                 .status(HttpStatus.FORBIDDEN)
-                .body(new ErrorResponse(
-                        HttpStatus.FORBIDDEN.value(),
-                        "Access denied",
-                        LocalDateTime.now()
-                ));
+                .body(ResponseWrapper.fail("Access denied"));
     }
 
     /* =============================
-       GENERIC EXCEPTION (500)
+       GENERIC ERROR (500) – TEK TANE
     ============================== */
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGenericException(
+    public ResponseEntity<ResponseWrapper<Void>> handleGeneric(
             Exception ex
     ) {
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ErrorResponse(
-                        HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                        "Unexpected error occurred",
-                        LocalDateTime.now()
-                ));
+                .body(ResponseWrapper.fail("Unexpected error occurred"));
     }
-
 }

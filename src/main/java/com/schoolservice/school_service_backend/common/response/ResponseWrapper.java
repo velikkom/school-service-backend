@@ -30,4 +30,10 @@ public class ResponseWrapper<T> {
     public static <T> ResponseWrapper<T> failure(String message) {
         return new ResponseWrapper<>(false, message, null);
     }
+
+    public static <T> ResponseWrapper<T> fail(String message) {
+        return new ResponseWrapper<>(false, message, null);
+    }
+
+
 }
