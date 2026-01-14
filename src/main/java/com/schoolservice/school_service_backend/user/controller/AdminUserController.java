@@ -1,6 +1,7 @@
 package com.schoolservice.school_service_backend.user.controller;
 
 import com.schoolservice.school_service_backend.common.response.ResponseWrapper;
+import com.schoolservice.school_service_backend.user.dto.AdminUserFilterRequest;
 import com.schoolservice.school_service_backend.user.dto.AdminUserResponse;
 import com.schoolservice.school_service_backend.user.dto.PendingUserResponse;
 import com.schoolservice.school_service_backend.user.service.UserService;
@@ -8,6 +9,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -147,5 +149,89 @@ public class AdminUserController {
                 )
         );
     }
+
+    /**
+     * Get user detail by ID
+     */
+    @GetMapping("/{userId}")
+    @Operation(
+            summary = "Get  user detail",
+            description = "Returns user detail by ID (ADMIN only)"
+    )
+    public ResponseEntity<ResponseWrapper<AdminUserResponse>> getUserById(@PathVariable UUID userId){
+        return ResponseEntity.ok(
+                ResponseWrapper.success(
+                        userService.getUserDetailForAdmin(userId),
+                        "User retrieved successfully"
+                )
+        );
+    }
+
+    /**
+     * Get users with filters
+     */
+//    @GetMapping
+//    public ResponseEntity<ResponseWrapper<Page<AdminUserResponse>>> getUsers(
+//            AdminUserFilterRequest filter,
+//            @RequestParam(defaultValue = "0") int page,
+//            @RequestParam(defaultValue = "10") int size
+//    ) {
+//        return ResponseEntity.ok(
+//                ResponseWrapper.success(
+//                        userService.getUsersForAdmin(filter,page, size),
+//                        "Users retrieved successfully"
+//                )
+//        );
+//    }
+
+    /**
+     * Get users with filters and sorting
+     */
+    @GetMapping
+    public ResponseEntity<ResponseWrapper<Page<AdminUserResponse>>> getAllUsers(
+            AdminUserFilterRequest filter,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDirection
+    ) {
+        return ResponseEntity.ok(
+                ResponseWrapper.success(
+                        userService.getAllUsersForAdmin(
+                                filter,
+                                page,
+                                size,
+                                sortBy,
+                                sortDirection
+                        ),
+                        "Users retrieved successfully"
+                )
+        );
+    }
+
+
+    /**
+     * Restore user
+     */
+    @PutMapping("/{userId}/restore")
+    @Operation(
+            summary = "Restore user",
+            description = "Restores a soft deleted user (ADMIN only)"
+    )
+    public ResponseEntity<ResponseWrapper<Void>> restoreUser(
+            @PathVariable UUID userId
+    ) {
+        userService.restoreUser(userId);
+
+        return ResponseEntity.ok(
+                ResponseWrapper.success(
+                        null,
+                        "User restored successfully"
+                )
+        );
+    }
+
+
+
 
 }

@@ -7,6 +7,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 import java.util.Set;
 
@@ -48,5 +49,14 @@ public class User {
     @Column(nullable = false)
     @Builder.Default
     private ApprovalStatus approvalStatus = ApprovalStatus.PENDING;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
+
+    public boolean isDeleted() {
+        return deletedAt != null;
+    }
+
+
 
 }
