@@ -3,13 +3,11 @@ package com.schoolservice.school_service_backend.user.entity;
 import com.schoolservice.school_service_backend.user.enums.ApprovalStatus;
 import com.schoolservice.school_service_backend.user.enums.RoleType;
 import jakarta.persistence.*;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
 import lombok.*;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 import java.util.Set;
+import java.util.UUID;
 
 @Entity
 @Table(name = "users")
@@ -33,6 +31,9 @@ public class User {
     private String firstName;
     private String lastName;
 
+    /* =========================
+       ROLES (ADMIN ATAR)
+    ========================= */
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
             name = "user_roles",
@@ -40,10 +41,17 @@ public class User {
     )
     @Enumerated(EnumType.STRING)
     @Column(name = "role")
-    private Set<RoleType> roles;
+    @Builder.Default
+    private Set<RoleType> roles = Set.of();
 
+
+
+    /* =========================
+       ACCOUNT STATUS
+    ========================= */
     @Column(nullable = false)
-    private boolean active = true;
+    @Builder.Default
+    private boolean active = false;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -56,7 +64,4 @@ public class User {
     public boolean isDeleted() {
         return deletedAt != null;
     }
-
-
-
 }

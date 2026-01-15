@@ -3,11 +3,14 @@ package com.schoolservice.school_service_backend.user.controller;
 import com.schoolservice.school_service_backend.common.response.ResponseWrapper;
 import com.schoolservice.school_service_backend.user.dto.AdminUserFilterRequest;
 import com.schoolservice.school_service_backend.user.dto.AdminUserResponse;
+import com.schoolservice.school_service_backend.user.dto.CreateUserRequest;
 import com.schoolservice.school_service_backend.user.dto.PendingUserResponse;
+import com.schoolservice.school_service_backend.user.enums.RoleType;
 import com.schoolservice.school_service_backend.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -52,22 +55,14 @@ public class AdminUserController {
      * Approve a pending user
      */
     @PutMapping("/{userId}/approve")
-    @Operation(
-            summary = "Approve user",
-            description = "Approves a pending user. Only ADMIN can perform this operation."
-    )
     public ResponseEntity<ResponseWrapper<Void>> approveUser(
-            @PathVariable UUID userId
+            @PathVariable UUID userId,
+            @RequestParam RoleType role
     ) {
-        userService.approveUser(userId);
-
-        return ResponseEntity.ok(
-                ResponseWrapper.success(
-                        null,
-                        "User approved successfully"
-                )
-        );
+        userService.approveUser(userId, role);
+        return ResponseEntity.ok(ResponseWrapper.success(null, "User approved"));
     }
+
 
     /**
      * Reject a pending user
@@ -98,7 +93,7 @@ public class AdminUserController {
             summary = "Get approved users",
             description = "Lists all approved users (ADMIN only)"
     )
-    public ResponseEntity<ResponseWrapper<List<AdminUserResponse>>> getApprovedUsers(){
+    public ResponseEntity<ResponseWrapper<List<AdminUserResponse>>> getApprovedUsers() {
 
         return ResponseEntity.ok(
                 ResponseWrapper.success(
@@ -158,7 +153,7 @@ public class AdminUserController {
             summary = "Get  user detail",
             description = "Returns user detail by ID (ADMIN only)"
     )
-    public ResponseEntity<ResponseWrapper<AdminUserResponse>> getUserById(@PathVariable UUID userId){
+    public ResponseEntity<ResponseWrapper<AdminUserResponse>> getUserById(@PathVariable UUID userId) {
         return ResponseEntity.ok(
                 ResponseWrapper.success(
                         userService.getUserDetailForAdmin(userId),
@@ -232,6 +227,21 @@ public class AdminUserController {
     }
 
 
+    /**
+     * Register user
+     */
+    @PostMapping("/register")
+    public ResponseEntity<ResponseWrapper<Void>> register(
+            @Valid @RequestBody CreateUserRequest request
+    ) {
 
+        userService.registerUser(request);
 
+        return ResponseEntity.ok(
+                ResponseWrapper.success(
+                        null,
+                        "Registration successful. Waiting for admin approval."
+                )
+        );
+    }
 }

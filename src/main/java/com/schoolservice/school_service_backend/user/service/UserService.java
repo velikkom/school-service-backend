@@ -1,9 +1,7 @@
 package com.schoolservice.school_service_backend.user.service;
 
-import com.schoolservice.school_service_backend.user.dto.AdminUserFilterRequest;
-import com.schoolservice.school_service_backend.user.dto.AdminUserResponse;
-import com.schoolservice.school_service_backend.user.dto.CreateUserRequest;
-import com.schoolservice.school_service_backend.user.dto.PendingUserResponse;
+import com.schoolservice.school_service_backend.user.dto.*;
+import com.schoolservice.school_service_backend.user.enums.RoleType;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
@@ -15,7 +13,7 @@ public interface UserService {
 
     List<PendingUserResponse> getPendingUsers();
 
-    void approveUser(UUID userId);
+    void approveUser(UUID userId, RoleType roleToAssign);
 
     void rejectUser(UUID userId);
 
@@ -35,5 +33,7 @@ public interface UserService {
     void restoreUser(UUID userId);
 
     void registerUser(CreateUserRequest request);
+
+    void updateMyProfile(String currentEmail, UpdateProfileRequest request);
 
 }
