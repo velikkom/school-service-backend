@@ -12,6 +12,7 @@ import com.schoolservice.school_service_backend.security.dto.LoginResponse;
 import com.schoolservice.school_service_backend.security.jwt.JwtUtils;
 import com.schoolservice.school_service_backend.user.dto.ChangePasswordRequest;
 import com.schoolservice.school_service_backend.user.entity.User;
+import com.schoolservice.school_service_backend.user.enums.ApprovalStatus;
 import com.schoolservice.school_service_backend.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -44,35 +45,52 @@ public class AuthServiceImpl implements AuthService {
     private final EmailService emailService;
 
     // =========================
-    // LOGIN
-    // =========================
+// LOGIN
+// =========================
     @Override
     public LoginResponse login(LoginRequest request) {
 
-        Authentication authentication =
-                authenticationManager.authenticate(
-                        new UsernamePasswordAuthenticationToken(
-                                request.email(),
-                                request.password()
-                        )
-                );
+        // 1) USER VAR MI? (email üzerinden)
+        User user = userRepository.findByEmail(request.email())
+                .orElseThrow(() -> new BusinessException("Kullanıcı bulunamadı"));
 
+        // 2) ADMIN ONAYI + AKTİFLİK KONTROLÜ (TOKEN ÜRETMEDEN ÖNCE)
+        if (user.getApprovalStatus() == ApprovalStatus.PENDING) {
+            throw new BusinessException("Admin onayı bekleniyor");
+        }
+
+        if (!Boolean.TRUE.equals(user.isActive())) {
+            throw new BusinessException("Hesap pasif durumda");
+        }
+
+        // 3) AUTHENTICATE (email+password)
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        request.email(),
+                        request.password()
+                )
+        );
+
+        // 4) JWT ÜRET
         String token = jwtUtils.generateJwtToken(
                 (org.springframework.security.core.userdetails.User)
                         authentication.getPrincipal()
         );
 
+        // 5) ROLLERİ AL
         List<String> roles = authentication.getAuthorities()
                 .stream()
                 .map(GrantedAuthority::getAuthority)
                 .toList();
 
+        // 6) RESPONSE
         return new LoginResponse(
                 token,
-                request.email(),
+                user.getEmail(),
                 roles
         );
     }
+
 
     // =========================
     // FORGOT PASSWORD
@@ -82,26 +100,29 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public void forgotPassword(ForgotPasswordRequest request) {
 
-        userRepository.findByEmail(request.email())
-                .ifPresent(user -> {
+        User user = userRepository.findByEmail(request.email())
+                .orElseThrow(() ->
+                        new BusinessException("Bu e-posta ile kayıtlı kullanıcı bulunamadı")
+                );
 
-                    // 🔥 ARTIK BU GARANTİLİ
-                    tokenRepository.deleteByUserId(user.getId());
+        // 🔥 Eski tokenları sil
+        tokenRepository.deleteByUserId(user.getId());
 
-                    String token = UUID.randomUUID().toString();
+        String token = UUID.randomUUID().toString();
 
-                    PasswordResetToken resetToken = PasswordResetToken.builder()
-                            .token(token)
-                            .user(user)
-                            .expiresAt(LocalDateTime.now().plusMinutes(15))
-                            .used(false)
-                            .build();
+        PasswordResetToken resetToken = PasswordResetToken.builder()
+                .token(token)
+                .user(user)
+                .expiresAt(LocalDateTime.now().plusMinutes(15))
+                .used(false)
+                .build();
 
-                    tokenRepository.save(resetToken);
+        tokenRepository.save(resetToken);
 
-                    log.info("RESET TOKEN -> {} : {}", user.getEmail(), token);
-                });
+        // 📧 MAIL GÖNDER (kritik satır)
+        emailService.sendPasswordResetEmail(user.getEmail(), token);
     }
+
 
 
 

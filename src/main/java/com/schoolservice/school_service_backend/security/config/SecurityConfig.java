@@ -13,6 +13,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @Configuration
 @EnableMethodSecurity(prePostEnabled = true)
@@ -21,35 +26,53 @@ public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
 
-    /* =============================
+    /* =====================================================
        SECURITY FILTER CHAIN
-    ============================== */
+    ====================================================== */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-                // CSRF kapalı (JWT stateless)
+                /* =============================
+                   CORS (🔥 MUST BE HERE)
+                ============================== */
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+
+                /* =============================
+                   CSRF (JWT → DISABLED)
+                ============================== */
                 .csrf(csrf -> csrf.disable())
 
-                // Session yok
+                /* =============================
+                   SESSION (STATELESS)
+                ============================== */
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
 
-                // Endpoint kuralları
+                /* =============================
+                   AUTHORIZATION RULES
+                ============================== */
                 .authorizeHttpRequests(auth -> auth
+                        // AUTH & DOCS
                         .requestMatchers(
                                 "/api/auth/**",
+                                "/auth/**",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**"
                         ).permitAll()
-                        .requestMatchers(
-                                "/api/admin/**"
-                        ).hasRole("ADMIN")
+
+                        // ADMIN ENDPOINTS
+                        .requestMatchers("/api/admin/**")
+                        .hasRole("ADMIN")
+
+                        // EVERYTHING ELSE
                         .anyRequest().authenticated()
                 )
 
-                // JWT filter
+                /* =============================
+                   JWT FILTER
+                ============================== */
                 .addFilterBefore(
                         jwtAuthFilter,
                         UsernamePasswordAuthenticationFilter.class
@@ -58,17 +81,48 @@ public class SecurityConfig {
         return http.build();
     }
 
-    /* =============================
+    /* =====================================================
+       CORS CONFIGURATION (SECURITY LEVEL)
+    ====================================================== */
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+
+        CorsConfiguration config = new CorsConfiguration();
+
+        // Frontend URL (local dev)
+        config.setAllowedOrigins(List.of(
+                "http://localhost:3000"
+        ));
+
+        config.setAllowedMethods(List.of(
+                "GET",
+                "POST",
+                "PUT",
+                "DELETE",
+                "OPTIONS"
+        ));
+
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source =
+                new UrlBasedCorsConfigurationSource();
+
+        source.registerCorsConfiguration("/**", config);
+        return source;
+    }
+
+    /* =====================================================
        PASSWORD ENCODER
-    ============================== */
+    ====================================================== */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    /* =============================
+    /* =====================================================
        AUTHENTICATION MANAGER
-    ============================== */
+    ====================================================== */
     @Bean
     public AuthenticationManager authenticationManager(
             AuthenticationConfiguration authenticationConfiguration
