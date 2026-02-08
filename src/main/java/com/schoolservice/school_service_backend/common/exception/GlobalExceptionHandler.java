@@ -84,12 +84,17 @@ public class GlobalExceptionHandler {
     /* =============================
        GENERIC ERROR (500) – TEK TANE
     ============================== */
+//    @ExceptionHandler(Exception.class)
+//    public ResponseEntity<ResponseWrapper<Void>> handleGeneric(
+//            Exception ex
+//    ) {
+//        return ResponseEntity
+//                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                .body(ResponseWrapper.fail("Unexpected error occurred"));
+//    }
+
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ResponseWrapper<Void>> handleGeneric(
-            Exception ex
-    ) {
-        return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ResponseWrapper.fail("Unexpected error occurred"));
+    public ResponseWrapper handleGeneric(Exception ex) {
+        return ResponseWrapper.error(ex.getMessage());
     }
 }

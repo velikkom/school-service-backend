@@ -5,6 +5,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -17,11 +19,14 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.hibernate.query.sqm.tree.SqmNode.log;
+
 @Component
 @RequiredArgsConstructor
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtUtils jwtUtils;
+    private final Logger log = LoggerFactory.getLogger(this.getClass());
 
     @Override
     protected void doFilterInternal(
@@ -67,6 +72,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
             return headerAuth.substring(7);
         }
+        log.info("JWT FILTER HIT → {}", request.getRequestURI());
 
         return null;
     }

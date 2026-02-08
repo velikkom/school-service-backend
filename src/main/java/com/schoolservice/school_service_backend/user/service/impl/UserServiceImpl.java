@@ -35,7 +35,7 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final AdminAuditService auditService;
 
-    private static final String DEFAULT_SORT_BY = "createdAt";
+    private static final String DEFAULT_SORT_BY = "id";
     private static final String DEFAULT_SORT_DIRECTION = "desc";
     private static final int MAX_PAGE_SIZE = 50;
 
@@ -284,7 +284,18 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
     }
 
+    @Transactional
+    @Override
+    public void approveUsers(List<UUID> uuids, RoleType role) {
 
+        if (uuids == null || uuids.isEmpty()) {
+            throw new IllegalArgumentException("User list cannot be empty");
+        }
+
+        for (UUID uuid : uuids) {
+            approveUser(uuid, role);
+        }
+    }
 
 
     /**
@@ -295,10 +306,11 @@ public class UserServiceImpl implements UserService {
             case "email" -> "email";
             case "firstName" -> "firstName";
             case "lastName" -> "lastName";
-            case "createdAt" -> "createdAt";
-            default -> "createdAt";
+            case "approvalStatus" -> "approvalStatus";
+            default -> "id"; // 🔥 FALLBACK
         };
     }
+
 
 
 

@@ -2,6 +2,8 @@ package com.schoolservice.school_service_backend.user.service;
 
 import com.schoolservice.school_service_backend.user.dto.*;
 import com.schoolservice.school_service_backend.user.enums.RoleType;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
@@ -36,4 +38,5 @@ public interface UserService {
 
     void updateMyProfile(String currentEmail, UpdateProfileRequest request);
 
+    void approveUsers(@NotEmpty(message = "User id list cannot be empty") List<UUID> uuids, @NotNull(message = "Role is required") RoleType role);
 }

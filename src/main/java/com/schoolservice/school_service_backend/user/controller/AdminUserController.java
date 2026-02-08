@@ -1,10 +1,7 @@
 package com.schoolservice.school_service_backend.user.controller;
 
 import com.schoolservice.school_service_backend.common.response.ResponseWrapper;
-import com.schoolservice.school_service_backend.user.dto.AdminUserFilterRequest;
-import com.schoolservice.school_service_backend.user.dto.AdminUserResponse;
-import com.schoolservice.school_service_backend.user.dto.CreateUserRequest;
-import com.schoolservice.school_service_backend.user.dto.PendingUserResponse;
+import com.schoolservice.school_service_backend.user.dto.*;
 import com.schoolservice.school_service_backend.user.enums.RoleType;
 import com.schoolservice.school_service_backend.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -50,6 +47,29 @@ public class AdminUserController {
                 )
         );
     }
+
+    /**
+     * Bulk approve users
+     */
+    @PutMapping( value = "/approve",
+            consumes = "application/json")
+    @Operation(
+            summary = "Bulk approve users",
+            description = "Approves multiple pending users and assigns the same role"
+    )
+    public ResponseEntity<ResponseWrapper<Void>> approveUsers(
+            @Valid @RequestBody AdminBulkApproveRequest request
+    ) {
+        userService.approveUsers(request.userIds(), request.role());
+
+        return ResponseEntity.ok(
+                ResponseWrapper.success(
+                        null,
+                        "Users approved successfully"
+                )
+        );
+    }
+
 
     /**
      * Approve a pending user
@@ -187,7 +207,7 @@ public class AdminUserController {
             AdminUserFilterRequest filter,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "id") String sortBy,   // 🔥 FIX
             @RequestParam(defaultValue = "desc") String sortDirection
     ) {
         return ResponseEntity.ok(
