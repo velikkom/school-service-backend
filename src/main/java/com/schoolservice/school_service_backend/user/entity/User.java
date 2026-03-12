@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -42,7 +43,8 @@ public class User {
     @Enumerated(EnumType.STRING)
     @Column(name = "role")
     @Builder.Default
-    private Set<RoleType> roles = Set.of();
+    private Set<RoleType> roles = new HashSet<>();
+
 
 
 

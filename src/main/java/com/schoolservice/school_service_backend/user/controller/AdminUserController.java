@@ -51,7 +51,7 @@ public class AdminUserController {
     /**
      * Bulk approve users
      */
-    @PutMapping( value = "/approve",
+    @PutMapping(value = "/approve",
             consumes = "application/json")
     @Operation(
             summary = "Bulk approve users",
@@ -182,27 +182,15 @@ public class AdminUserController {
         );
     }
 
-    /**
-     * Get users with filters
-     */
-//    @GetMapping
-//    public ResponseEntity<ResponseWrapper<Page<AdminUserResponse>>> getUsers(
-//            AdminUserFilterRequest filter,
-//            @RequestParam(defaultValue = "0") int page,
-//            @RequestParam(defaultValue = "10") int size
-//    ) {
-//        return ResponseEntity.ok(
-//                ResponseWrapper.success(
-//                        userService.getUsersForAdmin(filter,page, size),
-//                        "Users retrieved successfully"
-//                )
-//        );
-//    }
 
     /**
      * Get users with filters and sorting
      */
     @GetMapping
+    @Operation(
+            summary = "Get users",
+            description = "Returns users with filters and sorting (ADMIN only)"
+    )
     public ResponseEntity<ResponseWrapper<Page<AdminUserResponse>>> getAllUsers(
             AdminUserFilterRequest filter,
             @RequestParam(defaultValue = "0") int page,
@@ -251,6 +239,10 @@ public class AdminUserController {
      * Register user
      */
     @PostMapping("/register")
+    @Operation(
+            summary = "Register user",
+            description = "Registers a new user (ADMIN only)"
+    )
     public ResponseEntity<ResponseWrapper<Void>> register(
             @Valid @RequestBody CreateUserRequest request
     ) {
@@ -264,4 +256,25 @@ public class AdminUserController {
                 )
         );
     }
+
+    /**
+     * Update user
+     */
+
+    @PutMapping("/{userId}")
+    @Operation(
+            summary = "Update user",
+            description = "Updates a user (ADMIN only)"
+    )
+    public ResponseWrapper<AdminUserResponse> updateUser(
+            @PathVariable UUID userId,
+            @Valid @RequestBody UpdateUserRequest request
+    ) {
+        AdminUserResponse updateUser = userService.updateUser(userId, request);
+        return ResponseWrapper.success(updateUser,"User updated successfully");
+
+    }
+
+
+
 }

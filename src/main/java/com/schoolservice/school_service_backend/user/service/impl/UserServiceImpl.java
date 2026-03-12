@@ -21,10 +21,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -94,7 +91,6 @@ public class UserServiceImpl implements UserService {
                 "User approved with role: " + roleToAssign
         );
     }
-
 
 
     @Override
@@ -184,18 +180,6 @@ public class UserServiceImpl implements UserService {
         return userMapper.toAdminUserResponse(user);
     }
 
-//    @Override
-//    public Page<AdminUserResponse> getUsersForAdmin(AdminUserFilterRequest filter, int page, int size) {
-//
-//        Pageable pageable = PageRequest.of(
-//                page,
-//                size,
-//                Sort.by("createdAt").descending());
-//        Page<User> users = userRepository
-//                .findAll(UserSpecification.withFilters(filter), pageable);
-//
-//        return users.map(userMapper::toAdminUserResponse);
-//    }
 
     @Override
     public Page<AdminUserResponse> getAllUsersForAdmin(
@@ -297,6 +281,34 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    @Override
+    public AdminUserResponse updateUser(UUID userId, UpdateUserRequest request) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        if (request.firstName() != null)
+            user.setFirstName(request.firstName());
+
+        if (request.lastName() != null)
+            user.setLastName(request.lastName());
+
+        if (request.email() != null)
+            user.setEmail(request.email());
+
+        if (request.role() != null)
+            user.getRoles().clear();
+        user.getRoles().add(request.role());
+
+
+        if (request.active() != null)
+            user.setActive(request.active());
+
+        userRepository.save(user);
+
+        return userMapper.toAdminUserResponse(user);
+    }
+
 
     /**
      * Whitelist allowed sort fields to prevent invalid / unsafe sorting
@@ -310,10 +322,6 @@ public class UserServiceImpl implements UserService {
             default -> "id"; // 🔥 FALLBACK
         };
     }
-
-
-
-
 
 
 }
