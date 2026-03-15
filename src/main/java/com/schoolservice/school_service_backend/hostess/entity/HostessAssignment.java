@@ -23,7 +23,6 @@ public class HostessAssignment {
     @GeneratedValue
     private UUID id;
 
-
     /* =========================
        RELATIONS
     ========================= */
@@ -40,7 +39,6 @@ public class HostessAssignment {
     @JoinColumn(name = "vehicle_id", nullable = false)
     private Vehicle vehicle;
 
-
     /* =========================
        SCHEDULE
     ========================= */
@@ -55,6 +53,11 @@ public class HostessAssignment {
     @Column(nullable = false)
     private LocalTime endTime;
 
+    /* =========================
+       EXTRA
+    ========================= */
+
+    private String notes;
 
     /* =========================
        STATUS
@@ -63,14 +66,6 @@ public class HostessAssignment {
     @Column(nullable = false)
     @Builder.Default
     private boolean active = true;
-
-
-    /* =========================
-       EXTRA
-    ========================= */
-
-    private String notes;
-
 
     /* =========================
        AUDIT
@@ -81,5 +76,4 @@ public class HostessAssignment {
     private LocalDateTime createdAt = LocalDateTime.now();
 
     private LocalDateTime updatedAt;
-
 }
