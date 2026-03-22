@@ -8,7 +8,10 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "parents")
+@Table(name = "parents",
+        indexes = {
+                @Index(name = "idx_parent_user", columnList = "user_id")
+        })
 @Getter
 @Setter
 @NoArgsConstructor
@@ -20,50 +23,48 @@ public class Parent {
     @GeneratedValue
     private UUID id;
 
-    /* =========================
-       USER RELATION
-    ========================= */
-
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
 
-    /* =========================
-       CONTACT INFO
-    ========================= */
-
-    @Column(nullable = false)
+    // CONTACT
+    @Column(nullable = false, length = 15)
     private String phoneNumber;
 
     private String emergencyContactName;
-
     private String emergencyContactPhone;
 
-    /* =========================
-       ADDRESS
-    ========================= */
-
+    // ADDRESS
     private String address;
-
     private String district;
-
     private String city;
 
-    /* =========================
-       STATUS
-    ========================= */
+    // 🔥 CRITICAL
+    @Column(unique = true)
+    private String identityNumber;
 
-    @Column(nullable = false)
-    @Builder.Default
-    private boolean active = true;
-
-    /* =========================
-       AUDIT
-    ========================= */
-
-    @Column(nullable = false)
-    @Builder.Default
-    private LocalDateTime createdAt = LocalDateTime.now();
+    // AUDIT
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
+
+    @PrePersist
+    public void prePersist() {
+        createdAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
+
+    // 🔥 DERIVED LOGIC
+    public boolean isProfileComplete() {
+        return phoneNumber != null
+                && address != null
+                && city != null
+                && district != null
+                && identityNumber != null;
+    }
 }

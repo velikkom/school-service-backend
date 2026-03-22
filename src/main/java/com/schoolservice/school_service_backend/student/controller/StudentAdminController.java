@@ -3,6 +3,7 @@ package com.schoolservice.school_service_backend.student.controller;
 import com.schoolservice.school_service_backend.common.response.PageResponse;
 import com.schoolservice.school_service_backend.common.response.ResponseWrapper;
 import com.schoolservice.school_service_backend.common.util.PageMapper;
+import com.schoolservice.school_service_backend.student.dto.request.AdminCreateStudentRequest;
 import com.schoolservice.school_service_backend.student.dto.request.CreateStudentRequest;
 import com.schoolservice.school_service_backend.student.dto.response.StudentResponse;
 import com.schoolservice.school_service_backend.student.entity.Student;
@@ -33,12 +34,12 @@ public class StudentAdminController {
     @PostMapping
     @Operation(summary = "Create student")
     public ResponseEntity<ResponseWrapper<StudentResponse>> createStudent(
-            @Valid @RequestBody CreateStudentRequest request
+            @Valid @RequestBody AdminCreateStudentRequest request
     ) {
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ResponseWrapper.success(
-                        studentService.createStudent(request),
+                        studentService.adminCreateStudent(request),
                         "Student created successfully"
                 ));
     }

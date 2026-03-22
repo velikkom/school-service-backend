@@ -36,8 +36,8 @@ public class CreateStudentRequest {
     private String district;
     private String city;
 
-    @NotNull
-    private UUID parentId;
+    //@NotNull
+    //private UUID parentId;
 
     private UUID routeStopId; // admin set edebilir
 }
