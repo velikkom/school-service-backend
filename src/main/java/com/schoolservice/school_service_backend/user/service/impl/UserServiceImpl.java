@@ -4,6 +4,12 @@ import com.schoolservice.school_service_backend.common.audit.AdminAuditService;
 import com.schoolservice.school_service_backend.common.audit.AuditAction;
 import com.schoolservice.school_service_backend.common.exception.BusinessException;
 import com.schoolservice.school_service_backend.common.exception.ResourceNotFoundException;
+import com.schoolservice.school_service_backend.driver.entity.Driver;
+import com.schoolservice.school_service_backend.driver.repository.DriverRepository;
+import com.schoolservice.school_service_backend.hostess.entity.Hostess;
+import com.schoolservice.school_service_backend.hostess.repository.HostessRepository;
+import com.schoolservice.school_service_backend.parent.entity.Parent;
+import com.schoolservice.school_service_backend.parent.repository.ParentRepository;
 import com.schoolservice.school_service_backend.user.dto.*;
 import com.schoolservice.school_service_backend.user.entity.User;
 import com.schoolservice.school_service_backend.user.enums.ApprovalStatus;
@@ -31,6 +37,9 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final AdminAuditService auditService;
+    private final ParentRepository parentRepository;
+    private final DriverRepository driverRepository;
+    private final HostessRepository hostessRepository;
 
     private static final String DEFAULT_SORT_BY = "id";
     private static final String DEFAULT_SORT_DIRECTION = "desc";
@@ -84,6 +93,27 @@ public class UserServiceImpl implements UserService {
         user.setActive(true);
 
         userRepository.save(user);
+
+        // 🔥 Role’a göre entity oluştur
+        switch (roleToAssign) {
+            case ROLE_PARENT -> {
+                Parent parent = new Parent();
+                parent.setUser(user);
+               // parent.setActive(true);
+                parentRepository.save(parent);
+            }
+            case ROLE_DRIVER -> {
+                Driver driver = new Driver();
+                driver.setUser(user);
+                driverRepository.save(driver);
+            }
+            case ROLE_HOSTESS -> {
+                Hostess hostess = new Hostess();
+                hostess.setUser(user);
+                hostessRepository.save(hostess);
+            }
+            // diğer roller için benzer mantık
+        }
 
         auditService.log(
                 AuditAction.USER_APPROVED,

@@ -1,5 +1,6 @@
 package com.schoolservice.school_service_backend.parent.dto.response;
 
+import com.schoolservice.school_service_backend.parent.entity.ProfileStatus;
 import lombok.Builder;
 import lombok.Data;
 
@@ -28,5 +29,7 @@ public class ParentResponse {
 
     private String identityNumber;
 
-    private boolean profileComplete;
+    private ProfileStatus profileStatus;
+
 }
+

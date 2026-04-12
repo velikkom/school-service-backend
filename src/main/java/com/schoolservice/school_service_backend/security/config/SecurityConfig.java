@@ -66,6 +66,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin/**")
                         .hasRole("ADMIN")
 
+                        // PARENT (profile + students under /api/parent)
+                        .requestMatchers("/api/parent/**")
+                        .hasRole("PARENT")
+
                         // EVERYTHING ELSE
                         .anyRequest().authenticated()
                 )

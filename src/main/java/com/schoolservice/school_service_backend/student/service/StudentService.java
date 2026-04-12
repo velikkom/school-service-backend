@@ -7,22 +7,39 @@ import com.schoolservice.school_service_backend.student.entity.Student;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface StudentService {
 
-    // parent
-    StudentResponse createStudent(UUID userId, CreateStudentRequest request);
-    StudentResponse updateStudent(UUID userId, UUID studentId, CreateStudentRequest request);
-    void deleteStudent(UUID userId, UUID studentId);
-    StudentResponse getStudentById(UUID userId, UUID studentId);
+    /* =========================
+       🔥 PARENT METHODS
+    ========================= */
 
-    // admin
+    StudentResponse createStudentByEmail(String email, CreateStudentRequest request);
+
+    StudentResponse updateStudentByEmail(String email, UUID studentId, CreateStudentRequest request);
+
+    void deleteStudentByEmail(String email, UUID studentId);
+
+    StudentResponse getStudentByEmail(String email, UUID studentId);
+
+
+    /* =========================
+       🔥 ADMIN METHODS
+    ========================= */
+
     StudentResponse adminCreateStudent(AdminCreateStudentRequest request);
 
     Page<Student> getAllStudents(Pageable pageable);
+
     StudentResponse getStudentById(UUID studentId);
+
     StudentResponse updateStudent(UUID studentId, CreateStudentRequest request);
+
     StudentResponse assignRoute(UUID studentId, UUID routeStopId);
+
     void deleteStudent(UUID studentId);
+
+    List<StudentResponse> getStudentsByEmail(String email);
 }

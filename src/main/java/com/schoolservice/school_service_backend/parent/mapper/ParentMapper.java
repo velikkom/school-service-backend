@@ -14,7 +14,7 @@ public interface ParentMapper {
     @Mapping(target = "firstName", source = "user.firstName")
     @Mapping(target = "lastName", source = "user.lastName")
     @Mapping(target = "email", source = "user.email")
-    @Mapping(target = "profileComplete", expression = "java(parent.isProfileComplete())")
+    @Mapping(target = "profileStatus", expression = "java(parent.getProfileStatus())")
     ParentResponse toResponse(Parent parent);
 
     @Mapping(target = "id", ignore = true)

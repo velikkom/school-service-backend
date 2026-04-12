@@ -15,86 +15,54 @@ public class GlobalExceptionHandler {
        RESOURCE NOT FOUND (404)
     ============================== */
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ResponseWrapper<Void>> handleNotFound(
-            ResourceNotFoundException ex
-    ) {
-        return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(ResponseWrapper.fail(ex.getMessage()));
+    public ResponseEntity<ResponseWrapper<Void>> handleNotFound(ResourceNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ResponseWrapper.fail(ex.getMessage()));
+    }
+
+    @ExceptionHandler(ProfileNotCompletedException.class)
+    public ResponseEntity<ResponseWrapper<Void>> handleProfileNotCompleted(ProfileNotCompletedException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(ResponseWrapper.fail("PROFILE_NOT_COMPLETED"));
     }
 
     /* =============================
        BUSINESS EXCEPTION (400)
     ============================== */
     @ExceptionHandler(BusinessException.class)
-    public ResponseEntity<ResponseWrapper<Void>> handleBusiness(
-            BusinessException ex
-    ) {
-        return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body(ResponseWrapper.fail(ex.getMessage()));
+    public ResponseEntity<ResponseWrapper<Void>> handleBusiness(BusinessException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseWrapper.fail(ex.getMessage()));
     }
 
     /* =============================
        VALIDATION ERROR (400)
     ============================== */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ResponseWrapper<Void>> handleValidation(
-            MethodArgumentNotValidException ex
-    ) {
-        String message = ex.getBindingResult()
-                .getFieldErrors()
-                .stream()
-                .findFirst()
-                .map(error -> error.getField() + ": " + error.getDefaultMessage())
-                .orElse("Validation error");
+    public ResponseEntity<ResponseWrapper<Void>> handleValidation(MethodArgumentNotValidException ex) {
+        String message = ex.getBindingResult().getFieldErrors().stream().findFirst().map(error -> error.getField() + ": " + error.getDefaultMessage()).orElse("Validation error");
 
-        return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body(ResponseWrapper.fail(message));
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseWrapper.fail(message));
     }
 
     /* =============================
        UNAUTHORIZED (401)
     ============================== */
-    @ExceptionHandler({
-            org.springframework.security.core.userdetails.UsernameNotFoundException.class,
-            org.springframework.security.authentication.BadCredentialsException.class
-    })
-    public ResponseEntity<ResponseWrapper<Void>> handleUnauthorized(
-            RuntimeException ex
-    ) {
-        return ResponseEntity
-                .status(HttpStatus.UNAUTHORIZED)
-                .body(ResponseWrapper.fail(ex.getMessage()));
+    @ExceptionHandler({org.springframework.security.core.userdetails.UsernameNotFoundException.class, org.springframework.security.authentication.BadCredentialsException.class})
+    public ResponseEntity<ResponseWrapper<Void>> handleUnauthorized(RuntimeException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ResponseWrapper.fail(ex.getMessage()));
     }
 
     /* =============================
        FORBIDDEN (403)
     ============================== */
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ResponseWrapper<Void>> handleAccessDenied(
-            AccessDeniedException ex
-    ) {
-        return ResponseEntity
-                .status(HttpStatus.FORBIDDEN)
-                .body(ResponseWrapper.fail("Access denied"));
+    public ResponseEntity<ResponseWrapper<Void>> handleAccessDenied(AccessDeniedException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseWrapper.fail("Access denied"));
     }
 
-    /* =============================
-       GENERIC ERROR (500) – TEK TANE
-    ============================== */
-//    @ExceptionHandler(Exception.class)
-//    public ResponseEntity<ResponseWrapper<Void>> handleGeneric(
-//            Exception ex
-//    ) {
-//        return ResponseEntity
-//                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-//                .body(ResponseWrapper.fail("Unexpected error occurred"));
-//    }
+
 
     @ExceptionHandler(Exception.class)
-    public ResponseWrapper handleGeneric(Exception ex) {
+    public ResponseWrapper<Object> handleGeneric(Exception ex) {
         return ResponseWrapper.error(ex.getMessage());
     }
 }

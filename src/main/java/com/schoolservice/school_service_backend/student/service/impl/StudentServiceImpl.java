@@ -4,7 +4,6 @@ import com.schoolservice.school_service_backend.parent.entity.Parent;
 import com.schoolservice.school_service_backend.parent.repository.ParentRepository;
 import com.schoolservice.school_service_backend.parent.service.ParentService;
 import com.schoolservice.school_service_backend.route.entity.RouteStop;
-
 import com.schoolservice.school_service_backend.route.repository.RouteStopRepository;
 import com.schoolservice.school_service_backend.student.dto.request.AdminCreateStudentRequest;
 import com.schoolservice.school_service_backend.student.dto.request.CreateStudentRequest;
@@ -17,9 +16,12 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 public class StudentServiceImpl implements StudentService {
@@ -30,30 +32,34 @@ public class StudentServiceImpl implements StudentService {
     private final StudentMapper studentMapper;
     private final ParentService parentService;
 
-    // =========================
-    // 🔥 PARENT METHODS
-    // =========================
+    /* =========================
+       🔥 PARENT METHODS
+    ========================= */
 
     @Override
-    public StudentResponse createStudent(UUID userId, CreateStudentRequest request) {
+    public StudentResponse createStudentByEmail(String email, CreateStudentRequest request) {
 
-        parentService.validateParentActive(userId);
-
-        Parent parent = parentRepository.findByUserId(userId)
+        Parent parent = parentRepository.findByUser_Email(email)
                 .orElseThrow(() -> new EntityNotFoundException("Parent not found"));
+
+        parentService.validateParentActive(parent.getUser().getId());
 
         Student student = studentMapper.toEntity(request);
         student.setParent(parent);
+        System.out.println("STUDENT PARENT ID: " + student.getParent().getId());
 
         return studentMapper.toResponse(studentRepository.save(student));
     }
 
     @Override
-    public StudentResponse updateStudent(UUID userId, UUID studentId, CreateStudentRequest request) {
+    public StudentResponse updateStudentByEmail(String email, UUID studentId, CreateStudentRequest request) {
 
-        parentService.validateParentActive(userId);
+        Parent parent = parentRepository.findByUser_Email(email)
+                .orElseThrow(() -> new EntityNotFoundException("Parent not found"));
 
-        Student student = getStudentForParent(userId, studentId);
+        parentService.validateParentActive(parent.getUser().getId());
+
+        Student student = getStudentForParent(parent.getId(), studentId);
 
         studentMapper.updateStudentFromRequest(request, student);
 
@@ -61,11 +67,14 @@ public class StudentServiceImpl implements StudentService {
     }
 
     @Override
-    public void deleteStudent(UUID userId, UUID studentId) {
+    public void deleteStudentByEmail(String email, UUID studentId) {
 
-        parentService.validateParentActive(userId);
+        Parent parent = parentRepository.findByUser_Email(email)
+                .orElseThrow(() -> new EntityNotFoundException("Parent not found"));
 
-        Student student = getStudentForParent(userId, studentId);
+        parentService.validateParentActive(parent.getUser().getId());
+
+        Student student = getStudentForParent(parent.getId(), studentId);
 
         student.deactivate();
 
@@ -73,32 +82,35 @@ public class StudentServiceImpl implements StudentService {
     }
 
     @Override
-    public StudentResponse getStudentById(UUID userId, UUID studentId) {
+    public StudentResponse getStudentByEmail(String email, UUID studentId) {
 
-        Student student = getStudentForParent(userId, studentId);
+        Parent parent = parentRepository.findByUser_Email(email)
+                .orElseThrow(() -> new EntityNotFoundException("Parent not found"));
+
+        Student student = getStudentForParent(parent.getId(), studentId);
 
         return studentMapper.toResponse(student);
     }
 
-    // 🔥 CRITICAL SECURITY METHOD
-    private Student getStudentForParent(UUID userId, UUID studentId) {
+    /* =========================
+       🔥 CRITICAL SECURITY METHOD
+    ========================= */
 
-        Student student = studentRepository.findById(studentId)
+    private Student getStudentForParent(UUID parentId, UUID studentId) {
+
+        Student student = studentRepository.findByIdAndActiveTrue(studentId)
                 .orElseThrow(() -> new EntityNotFoundException("Student not found"));
 
-        Parent parent = parentRepository.findByUserId(userId)
-                .orElseThrow(() -> new EntityNotFoundException("Parent not found"));
-
-        if (!student.getParent().getId().equals(parent.getId())) {
-            throw new RuntimeException("ACCESS_DENIED");
+        if (!student.getParent().getId().equals(parentId)) {
+            throw new AccessDeniedException("You cannot access this student");
         }
 
         return student;
     }
 
-    // =========================
-    // 🔥 ADMIN METHODS
-    // =========================
+    /* =========================
+       🔥 ADMIN METHODS
+    ========================= */
 
     @Override
     public StudentResponse adminCreateStudent(AdminCreateStudentRequest request) {
@@ -119,8 +131,9 @@ public class StudentServiceImpl implements StudentService {
 
     @Override
     public StudentResponse getStudentById(UUID studentId) {
+
         return studentMapper.toResponse(
-                studentRepository.findById(studentId)
+                studentRepository.findByIdAndActiveTrue(studentId)
                         .orElseThrow(() -> new EntityNotFoundException("Student not found"))
         );
     }
@@ -128,7 +141,7 @@ public class StudentServiceImpl implements StudentService {
     @Override
     public StudentResponse updateStudent(UUID studentId, CreateStudentRequest request) {
 
-        Student student = studentRepository.findById(studentId)
+        Student student = studentRepository.findByIdAndActiveTrue(studentId)
                 .orElseThrow(() -> new EntityNotFoundException("Student not found"));
 
         studentMapper.updateStudentFromRequest(request, student);
@@ -139,7 +152,7 @@ public class StudentServiceImpl implements StudentService {
     @Override
     public StudentResponse assignRoute(UUID studentId, UUID routeStopId) {
 
-        Student student = studentRepository.findById(studentId)
+        Student student = studentRepository.findByIdAndActiveTrue(studentId)
                 .orElseThrow(() -> new EntityNotFoundException("Student not found"));
 
         RouteStop routeStop = routeStopRepository.findById(routeStopId)
@@ -153,11 +166,24 @@ public class StudentServiceImpl implements StudentService {
     @Override
     public void deleteStudent(UUID studentId) {
 
-        Student student = studentRepository.findById(studentId)
+        Student student = studentRepository.findByIdAndActiveTrue(studentId)
                 .orElseThrow(() -> new EntityNotFoundException("Student not found"));
 
         student.deactivate();
 
         studentRepository.save(student);
+    }
+
+    @Override
+    public List<StudentResponse> getStudentsByEmail(String email) {
+
+        Parent parent = parentRepository.findByUser_Email(email)
+                .orElseThrow(() -> new EntityNotFoundException("Parent not found"));
+
+        return studentRepository
+                .findAllByParentIdAndActiveTrue(parent.getId())
+                .stream()
+                .map(studentMapper::toResponse)
+                .toList();
     }
 }

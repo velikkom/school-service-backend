@@ -1,14 +1,15 @@
 package com.schoolservice.school_service_backend.parent.controller;
 
+import com.schoolservice.school_service_backend.common.response.ResponseWrapper;
 import com.schoolservice.school_service_backend.parent.dto.request.UpdateParentRequest;
 import com.schoolservice.school_service_backend.parent.dto.response.ParentResponse;
 import com.schoolservice.school_service_backend.parent.service.ParentService;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/parent")
@@ -17,26 +18,26 @@ public class ParentController {
 
     private final ParentService parentService;
 
-    /**
-     * 🔥 Parent kendi profilini getirir
-     */
     @GetMapping("/me")
-    @Operation(summary = "Parent kendi profilini getirir")
-    public ParentResponse getMyProfile(
-            @AuthenticationPrincipal UUID userId
+    @Operation(summary = "Get current parent profile")
+    public ResponseEntity<ResponseWrapper<ParentResponse>> getMyProfile(
+            Authentication authentication
     ) {
-        return parentService.getMyProfile(userId);
+        String email = (String) authentication.getPrincipal();
+        ParentResponse response = parentService.getMyProfileByEmail(email);
+        return ResponseEntity.ok(ResponseWrapper.success(response, "Parent profile fetched"));
     }
 
-    /**
-     * 🔥 Parent profil günceller
-     */
     @PutMapping("/me")
-    @Operation(summary = "Parent profil günceller")
-    public ParentResponse updateProfile(
-            @AuthenticationPrincipal UUID userId,
-            @RequestBody UpdateParentRequest request
+    @Operation(summary = "Update parent profile")
+    public ResponseEntity<ResponseWrapper<ParentResponse>> updateProfile(
+            Authentication authentication,
+            @RequestBody @Valid UpdateParentRequest request
     ) {
-        return parentService.updateProfile(userId, request);
+        String email = (String) authentication.getPrincipal();
+        ParentResponse parentResponse = parentService.updateProfileByEmail(email, request);
+        return ResponseEntity.ok(
+                ResponseWrapper.success(parentResponse, "Parent profile updated")
+        );
     }
 }

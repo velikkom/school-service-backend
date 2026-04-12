@@ -9,8 +9,6 @@ import org.mapstruct.*;
 public interface StudentMapper {
 
         @Mapping(target = "parentId", source = "parent.id")
-        @Mapping(target = "parentName",
-                expression = "java(student.getParent().getUser().getFirstName() + \" \" + student.getParent().getUser().getLastName())")
         @Mapping(target = "routeStopId", source = "routeStop.id")
         @Mapping(target = "routeName", source = "routeStop.route.name")
         StudentResponse toResponse(Student student);

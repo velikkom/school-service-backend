@@ -1,5 +1,7 @@
 package com.schoolservice.school_service_backend.parent.service.impl;
 
+import com.schoolservice.school_service_backend.common.exception.BusinessException;
+import com.schoolservice.school_service_backend.common.exception.ProfileNotCompletedException;
 import com.schoolservice.school_service_backend.common.exception.ResourceNotFoundException;
 import com.schoolservice.school_service_backend.parent.dto.request.UpdateParentRequest;
 import com.schoolservice.school_service_backend.parent.dto.response.ParentResponse;
@@ -22,17 +24,32 @@ public class ParentServiceImpl implements ParentService {
     private final ParentRepository parentRepository;
     private final ParentMapper parentMapper;
 
-    /**
-     * Parent profil güncelleme
-     * - Sadece admin tarafından onaylanmış kullanıcılar yapabilir
-     */
     @Override
-    public ParentResponse updateProfile(
-            UUID userId,
-            UpdateParentRequest request
-    ) {
+    public void validateParentActive(UUID userId) {
 
         Parent parent = getParentOrThrow(userId);
+
+        validateUserApproved(parent);
+        validateUserActive(parent);
+        validateProfileCompleted(parent);
+    }
+
+    @Override
+    public ParentResponse getMyProfileByEmail(String email) {
+
+        Parent parent = parentRepository.findByUser_Email(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Parent not found"));
+
+        return parentMapper.toResponse(parent);
+    }
+
+    @Override
+    public ParentResponse updateProfileByEmail(
+            String email,
+            UpdateParentRequest request
+    ) {
+        Parent parent = parentRepository.findByUser_Email(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Parent not found"));
 
         validateUserApproved(parent);
         validateUserActive(parent);
@@ -44,35 +61,6 @@ public class ParentServiceImpl implements ParentService {
         return parentMapper.toResponse(parent);
     }
 
-    /**
-     * Parent kendi profilini görüntüler
-     */
-    @Override
-    public ParentResponse getMyProfile(UUID userId) {
-
-        Parent parent = getParentOrThrow(userId);
-
-        return parentMapper.toResponse(parent);
-    }
-
-    /**
-     * 🔥 SİSTEM ERİŞİM KONTROLÜ
-     * Student create vb. işlemlerde kullanılacak
-     */
-    @Override
-    public void validateParentActive(UUID userId) {
-
-        Parent parent = getParentOrThrow(userId);
-
-        validateUserApproved(parent);
-        validateUserActive(parent);
-        validateProfileCompleted(parent);
-    }
-
-    // =========================
-    // 🔥 PRIVATE HELPERS (SENIOR LEVEL)
-    // =========================
-
     private Parent getParentOrThrow(UUID userId) {
         return parentRepository.findByUserId(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Parent not found"));
@@ -80,19 +68,19 @@ public class ParentServiceImpl implements ParentService {
 
     private void validateUserApproved(Parent parent) {
         if (parent.getUser().getApprovalStatus() != ApprovalStatus.APPROVED) {
-            throw new RuntimeException("USER_NOT_APPROVED");
+            throw new BusinessException("USER_NOT_APPROVED");
         }
     }
 
     private void validateUserActive(Parent parent) {
         if (!parent.getUser().isActive()) {
-            throw new RuntimeException("USER_NOT_ACTIVE");
+            throw new BusinessException("USER_NOT_ACTIVE");
         }
     }
 
     private void validateProfileCompleted(Parent parent) {
         if (!parent.isProfileComplete()) {
-            throw new RuntimeException("PROFILE_NOT_COMPLETED");
+            throw new ProfileNotCompletedException();
         }
     }
 }

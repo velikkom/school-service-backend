@@ -28,7 +28,7 @@ public class Parent {
     private User user;
 
     // CONTACT
-    @Column(nullable = false, length = 15)
+    @Column(nullable = true, length = 15)
     private String phoneNumber;
 
     private String emergencyContactName;
@@ -44,7 +44,7 @@ public class Parent {
     private String identityNumber;
 
     // AUDIT
-    @Column(nullable = false, updatable = false)
+    @Column(nullable = true, updatable = false)
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
@@ -67,4 +67,9 @@ public class Parent {
                 && district != null
                 && identityNumber != null;
     }
+    @Transient
+    public ProfileStatus getProfileStatus() {
+        return isProfileComplete() ? ProfileStatus.COMPLETE : ProfileStatus.INCOMPLETE;
+    }
+
 }

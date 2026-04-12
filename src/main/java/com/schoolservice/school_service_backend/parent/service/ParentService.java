@@ -7,12 +7,9 @@ import java.util.UUID;
 
 public interface ParentService {
 
-    ParentResponse updateProfile(
-            UUID userId,
-            UpdateParentRequest request
-    );
-
-    ParentResponse getMyProfile(UUID userId);
-
     void validateParentActive(UUID userId);
+
+    ParentResponse getMyProfileByEmail(String email);
+
+    ParentResponse updateProfileByEmail(String email, UpdateParentRequest request);
 }
