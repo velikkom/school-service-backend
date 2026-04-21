@@ -63,6 +63,12 @@ public class User {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
+    /**
+     * Optional tenant scope. When set, hostess/parent flows only see data for this company.
+     */
+    @Column(name = "company_id")
+    private UUID companyId;
+
     public boolean isDeleted() {
         return deletedAt != null;
     }

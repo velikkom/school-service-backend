@@ -1,8 +1,10 @@
 package com.schoolservice.school_service_backend.hostess.repository;
 
 import com.schoolservice.school_service_backend.hostess.entity.HostessAssignment;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.DayOfWeek;
 import java.time.LocalTime;
@@ -16,6 +18,18 @@ public interface HostessAssignmentRepository extends JpaRepository<HostessAssign
     List<HostessAssignment> findByHostessUserId(UUID userId);
 
     List<HostessAssignment> findByHostessIdAndActiveTrue(UUID hostessId);
+
+    @EntityGraph(attributePaths = {"route", "vehicle"})
+    @Query("""
+            select ha from HostessAssignment ha
+            where ha.hostess.id = :hostessId
+              and ha.dayOfWeek = :dayOfWeek
+              and ha.active = true
+            """)
+    List<HostessAssignment> findActiveAssignmentsForHostessAndDay(
+            @Param("hostessId") UUID hostessId,
+            @Param("dayOfWeek") DayOfWeek dayOfWeek
+    );
 
     @Query("""
         select ha

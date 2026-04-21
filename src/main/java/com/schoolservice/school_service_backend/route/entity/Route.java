@@ -31,6 +31,11 @@ public class Route {
 
     private String description;
 
+    /**
+     * Owning company for multi-tenant filtering (nullable for legacy single-tenant data).
+     */
+    @Column(name = "company_id")
+    private UUID companyId;
 
     /* =========================
        STATUS

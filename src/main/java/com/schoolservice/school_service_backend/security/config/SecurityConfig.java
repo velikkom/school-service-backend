@@ -70,6 +70,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/parent/**")
                         .hasRole("PARENT")
 
+                        // HOSTESS (attendance & future hostess self-service APIs)
+                        .requestMatchers("/api/hostess/**")
+                        .hasRole("HOSTESS")
+
                         // EVERYTHING ELSE
                         .anyRequest().authenticated()
                 )
